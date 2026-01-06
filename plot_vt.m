@@ -3,13 +3,17 @@ graph_settings
 
 csv_files = dir(fullfile("C:\Users\ck2049\Desktop\UW_mocap_1\Alsomitra MoCap Data 12-21-2025", '*.csv'));
 
+%% Constants
+FPS          = 240;
+cutoff = 1.5;
+
 % Plot XYZ Trajectories
 w = 23; h = 23; 
 fig = figure('Units','centimeters', ...
              'Position',[2 2 w h], ...
              'WindowStyle','normal', ...
              'Resize','off');
-tiles = tiledlayout(4,2,'Padding','compact','TileSpacing','compact');
+tiles = tiledlayout(4,2,'Padding', "tight",'TileSpacing','tight');
 
 for i = 1:length(csv_files)
     nexttile(tiles)
@@ -20,7 +24,19 @@ for i = 1:length(csv_files)
     Z=T.("Rigid Body_6")/1000; Z = -Z(5:end); % Flip Z
     Time = T.Type(5:end);
 
+    %% === Time axis + cutoff ===
+    N = height(Z);
+    t = linspace(0, N/FPS, N)';  % matches numpy.linspace(0, len/FPS, len)
+    mask = (t <= cutoff);
+
+    if i == 4
+        mask = t > -100 ; 
+    end
+
     X = X - X(1); Y = Y - Y(1); Z = Z - Z(1);
+
+    Z = Z(mask);
+    Time = t(mask);
     
     plot(Time, Z, "LineWidth", 2,"Color", [0.51765  0.12549  0.41961]); hold on
     plot(Time(1:end-1), diff(Z)./Time(2), "LineWidth", 2, "Color", [0.89804  0.36078  0.18824]);
@@ -39,7 +55,7 @@ for i = 1:length(csv_files)
     take = regexp(csv_files(i).name, 'take\d+', 'match');
     title("Prototype " + prot{1}(end) + ", Flight " + take{1}(end));
 
-    pbaspect([3 1 1])
+    pbaspect([2 1 1])
 end
 
 legend(ax,"Displacement, $z$", "Velocity, $v_z$", "Location",'eastoutside');
@@ -52,5 +68,6 @@ set(fig,'PaperUnits','centimeters', ...
         'PaperPosition',[0 0 w h], ...
         'PaperSize',[w h], ...
         'PaperPositionMode','manual');
-print(fig,'figures/v_vs_t.pdf','-dpdf','-r1200');
-exportgraphics(fig,'figures/v_vs_t.png',resolution=1200);
+
+% print(fig,'figures/v_vs_t.pdf','-dpdf','-r1200');
+% exportgraphics(fig,'figures/v_vs_t.png',resolution=1200);

@@ -54,7 +54,7 @@ for i = 1:length(csv_files)
     mask = (t <= cutoff);
 
     if i == 4
-        mask = (t <= 4); 
+        mask = t > -100 ; 
     end
     
     t_chopped = t(mask);
