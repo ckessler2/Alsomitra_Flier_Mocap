@@ -1,18 +1,8 @@
 clc; clear; close all;
 graph_settings
 
-% If you have your own style function like in your example:
-% graph_settings
-
-%% === Global Constants (match Python) ===
-G_PROMINENCE = 0.05;
-G_DISTANCE   = 100;
-G_AXIS       = "Roll";
-G_VIEW       = 1000;
+%% Constants
 FPS          = 240;
-
-% Data start override (Python: data_start=None)
-data_start = [];   % e.g., data_start = 84;  % [] means auto-detect
 
 % Y-axis displacements
 roll_disp  = 0;
@@ -42,8 +32,7 @@ for i = 1:length(csv_files)
     qw = T.("Rigid Body_3"); qw = qw(5:end);
     
     %% === Process Euler angles (Python: process_euler) ===
-    eulerTbl = process_euler_matlab(qx, qy, qz, qw, ...
-        G_AXIS, G_DISTANCE, G_PROMINENCE, G_VIEW, data_start);
+    eulerTbl = process_euler_matlab(qx, qy, qz, qw);
     
     % (Optional) trim_by_degree_change equivalent (Python default is NOT using it)
     % eulerTbl = trim_by_degree_change_matlab(eulerTbl, 10);
@@ -98,7 +87,7 @@ for i = 1:length(csv_files)
     pbaspect([3 1 1])
 end
 
-function outTbl = process_euler_matlab(qx, qy, qz, qw, G_AXIS, G_DISTANCE, G_PROMINENCE, G_VIEW, custom_start)
+function outTbl = process_euler_matlab(qx, qy, qz, qw)
 
     % Quaternion -> Euler (Roll, Pitch, Yaw) in degrees.
     % Python used euler_from_quaternion(x,y,z,w) returning:
@@ -118,17 +107,6 @@ function outTbl = process_euler_matlab(qx, qy, qz, qw, G_AXIS, G_DISTANCE, G_PRO
     
 end
 
-function outTbl = trim_by_degree_change_matlab(eulerTbl, threshold)
-    roll = eulerTbl.Roll;
-    cutIdx = 1;
-    for i = 2:numel(roll)
-        if abs(roll(i) - roll(i-1)) < threshold
-            cutIdx = i;
-            break;
-        end
-    end
-    outTbl = eulerTbl(cutIdx:end, :);
-end
 
 % Global font size 
 set(findall(fig,'-property','FontSize'),'FontSize',10);
